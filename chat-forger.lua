@@ -13,8 +13,7 @@ if getgenv().ChatForgerRunning then
 end
 
 local endpoint = "https://api.openai.com/v1/chat/completions"
-local systemPrompt = "You will be given a Roblox chat message and a task you will perform on the message. You will return the new Roblox chat message ONLY (DO NOT include things like 'MESSAGE: ' at the start). Do not output profanity or things that will get filtered by the Roblox chat filter. If the user task is N/A, return the original message. Preserve the original tone of the message (e.g. if the original message is lowercase, the new message should be lowercase)."
-local userTask = "uwuify every message"
+local systemPrompt = "You will be given a Roblox chat message and a task you will perform on the message. You will return the new Roblox chat message ONLY (DO NOT include things like 'MESSAGE: ' at the start). Do not output profanity or things that will get filtered by the Roblox chat filter. If the user task is N/A, return the original message. Preserve the original tone of the message (e.g. if the original message is lowercase, the new message should be lowercase). You will also be given the chat history for context, but only only use the latest user task and message."
 
 local model = "gpt-4o-mini"
 local apiKey
@@ -140,7 +139,7 @@ local function createGui()
     local taskTextBox = Instance.new("TextBox")
     taskTextBox.Size = UDim2.new(1, -20, 0, 80)
     taskTextBox.Position = UDim2.new(0, 10, 0, 80)
-    taskTextBox.Text = userTask
+    taskTextBox.Text = "uwuify every message"
     taskTextBox.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
     taskTextBox.TextColor3 = Color3.fromRGB(220, 220, 240)
     taskTextBox.Font = Enum.Font.Gotham
