@@ -13,7 +13,7 @@ if getgenv().ChatForgerRunning then
 end
 
 local endpoint = "https://api.openai.com/v1/chat/completions"
-local systemPrompt = "You will be given a Roblox chat message and a task you will perform on the message. You will return the new Roblox chat message ONLY (DO NOT include things like 'MESSAGE: ' at the start). Do not output profanity or things that will get filtered by the Roblox chat filter. If the user task is empty, return the original message. Preserve the original tone of the message (e.g. if the original message is lowercase, the new message should be lowercase)."
+local systemPrompt = "You will be given a Roblox chat message and a task you will perform on the message. You will return the new Roblox chat message ONLY (DO NOT include things like 'MESSAGE: ' at the start). Do not output profanity or things that will get filtered by the Roblox chat filter. If the user task is N/A, return the original message. Preserve the original tone of the message (e.g. if the original message is lowercase, the new message should be lowercase)."
 local userTask = "uwuify every message"
 
 local model = "gpt-4o-mini"
@@ -282,7 +282,8 @@ local function getMessage(oldMessage)
         historyStr = historyStr .. "User: " .. exchange.user .. "\nGPT: " .. exchange.gpt .. "\n"
     end
 
-    local prompt = string.format("Chat History:\n%s\nUSER TASK: %s\nMESSAGE: %s", historyStr, taskTextBox.Text, oldMessage)
+    local userTaskFinal = (taskTextBox.Text ~= "" and taskTextBox.Text) or "N/A"
+    local prompt = string.format("Chat History:\n%s\nUSER TASK: %s\nMESSAGE: %s", historyStr, userTaskFinal, oldMessage)
 
     local messages = {
         { role = "system", content = systemPrompt },
