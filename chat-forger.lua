@@ -13,7 +13,7 @@ if getgenv().ChatForgerRunning then
 end
 
 local endpoint = "https://api.openai.com/v1/chat/completions"
-local systemPrompt = "You will be given a Roblox chat message and a task you will perform on the message. You will return the new Roblox chat message ONLY (DO NOT include things like 'MESSAGE: ' at the start). Do not output profanity or things that will get filtered by the Roblox chat filter. If the user task is N/A, return the original message. Preserve the original tone of the message (e.g. if the original message is lowercase, the new message should be lowercase). You will also be given the chat history for context, but only only use the latest user task and message."
+local systemPrompt = "You will be given a Roblox chat message and a task you will perform on the message. You will return the new Roblox chat message ONLY (DO NOT include things like 'MESSAGE: ' at the start). Do not output profanity or things that will get filtered by the Roblox chat filter. If the user task is N/A, return the original message. Preserve the original tone of the message (e.g. if the original message is lowercase, the new message should be lowercase). You will also be given the chat history for context, but ONLY use the LATEST user task and message."
 
 local model = "gpt-4o-mini"
 local apiKey
@@ -139,7 +139,7 @@ local function createGui()
     local taskTextBox = Instance.new("TextBox")
     taskTextBox.Size = UDim2.new(1, -20, 0, 80)
     taskTextBox.Position = UDim2.new(0, 10, 0, 80)
-    taskTextBox.Text = "uwuify every message"
+    taskTextBox.Text = getgenv().userTask
     taskTextBox.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
     taskTextBox.TextColor3 = Color3.fromRGB(220, 220, 240)
     taskTextBox.Font = Enum.Font.Gotham
@@ -153,6 +153,10 @@ local function createGui()
     local textBoxCorner = Instance.new("UICorner")
     textBoxCorner.CornerRadius = UDim.new(0, 8)
     textBoxCorner.Parent = taskTextBox
+
+    taskTextBox:GetPropertyChangedSignal("Text"):Connect(function()
+        getgenv().userTask = taskTextBox.Text
+    end)
     
     closeButton.MouseButton1Click:Connect(function()
         TweenService:Create(frame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
@@ -248,6 +252,9 @@ local function createApiKeyGui()
         if validateApiKey(textBox.Text) then
             apiKey = textBox.Text
             getgenv().ChatForgerApiKey = apiKey
+            if not userTask then 
+                getgenv().userTask = "uwuify every message"
+            end
             gui:Destroy()
             taskTextBox = createGui()
             getgenv().ChatForgerRunning = true
@@ -281,7 +288,7 @@ local function getMessage(oldMessage)
         historyStr = historyStr .. "User: " .. exchange.user .. "\nGPT: " .. exchange.gpt .. "\n"
     end
 
-    local userTaskFinal = (taskTextBox.Text ~= "" and taskTextBox.Text) or "N/A"
+    local userTaskFinal = (userTask ~= "" and userTask) or "N/A"
     local prompt = string.format("Chat History:\n%s\nUSER TASK: %s\nMESSAGE: %s", historyStr, userTaskFinal, oldMessage)
 
     local messages = {
@@ -333,20 +340,23 @@ getgenv().ChatForgerRunning = false
 
 initializeScript()
 
-local namecall
-namecall = hookmetamethod(game, "__namecall", function(self, ...)
-    local method = getnamecallmethod()
-    if not checkcaller() then
-        if method == "FireServer" and self == SayMessageRequest then
-            local args = {...}
-            local success, result = pcall(function()
-                return getMessage(args[1])
-            end)
-            if success then
-                args[1] = result
-                return namecall(self, unpack(args))
+if not getgenv().hooked then
+    local namecall
+    namecall = hookmetamethod(game, "__namecall", function(self, ...)
+        local method = getnamecallmethod()
+        if not checkcaller() then
+            if method == "FireServer" and self == SayMessageRequest then
+                local args = {...}
+                local success, result = pcall(function()
+                    return getMessage(args[1])
+                end)
+                if success then
+                    args[1] = result
+                    return namecall(self, unpack(args))
+                end
             end
         end
-    end
-    return namecall(self, ...)
-end)
+        return namecall(self, ...)
+    end)
+    getgenv().hooked = true
+end
