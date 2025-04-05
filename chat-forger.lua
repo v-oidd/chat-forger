@@ -26,6 +26,7 @@ local systemPrompt = "You will be given a Roblox chat message and a task you wil
 
 local model = "gpt-4o-mini"
 local apiKey
+local guiVisible = true
 
 local function createDraggableFrame(parent, title)
     local frame = Instance.new("Frame")
@@ -117,6 +118,11 @@ local function createDraggableFrame(parent, title)
     return frame, closeButton
 end
 
+local function toggleGuiVisibility(gui)
+    guiVisible = not guiVisible
+    gui.Enabled = guiVisible
+end
+
 local function createGui()
     local playerGui = LocalPlayer:WaitForChild("PlayerGui")
     
@@ -173,6 +179,20 @@ local function createGui()
         wait(0.3)
         gui:Destroy()
         getgenv().ChatForgerRunning = false
+    end)
+
+    local function handleKeyPress(input)
+        if input.KeyCode == Enum.KeyCode.RightShift and input.UserInputState == Enum.UserInputState.Begin then
+            toggleGuiVisibility(gui)
+        end
+    end
+
+    local inputConnection = UserInputService.InputBegan:Connect(handleKeyPress)
+    
+    gui.AncestryChanged:Connect(function(_, parent)
+        if parent == nil then
+            inputConnection:Disconnect()
+        end
     end)
     
     return taskTextBox
@@ -254,6 +274,20 @@ local function createApiKeyGui()
     local buttonCorner = Instance.new("UICorner")
     buttonCorner.CornerRadius = UDim.new(0, 8)
     buttonCorner.Parent = button
+
+    local function handleKeyPress(input)
+        if input.KeyCode == Enum.KeyCode.RightShift and input.UserInputState == Enum.UserInputState.Begin then
+            toggleGuiVisibility(gui)
+        end
+    end
+
+    local inputConnection = UserInputService.InputBegan:Connect(handleKeyPress)
+
+    gui.AncestryChanged:Connect(function(_, parent)
+        if parent == nil then
+            inputConnection:Disconnect()
+        end
+    end)
     
     local function validateAndSetup()
         button.Text = "Checking..."
@@ -349,15 +383,13 @@ getgenv().ChatForgerRunning = false
 initializeScript()
 
 if not getgenv().hooked then
-
-
-if chatStatus == "old" then
-    if not hookmetamethod then error("Your exploit does not support hookmetamethod") end
+    if chatStatus == "old" then
+        if not hookmetamethod then error("Your exploit does not support hookmetamethod") end
         local namecall
         namecall = hookmetamethod(game, "__namecall", function(self, ...)
             local method = getnamecallmethod()
             if not checkcaller() then
-                if method == "FireServer" and self == SayMessageRequest then
+                if method == "FireServer" and self == chatEvent then
                     local args = {...}
                     local success, result = pcall(function()
                         return getMessage(args[1])
