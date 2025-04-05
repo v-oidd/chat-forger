@@ -22,7 +22,7 @@ if getgenv().ChatForgerRunning then
 end
 
 local endpoint = "https://api.openai.com/v1/chat/completions"
-local systemPrompt = "You will be given a Roblox chat message and a task you will perform on the message. You will return the new Roblox chat message ONLY (DO NOT include things like 'MESSAGE: ' at the start). Do not output profanity or things that will get filtered by the Roblox chat filter. If the user task is N/A, return the original message. Preserve the original tone of the message (e.g. if the original message is lowercase, the new message should be lowercase). You will also be given the chat history for context, but ONLY use the LATEST user task and message."
+local systemPrompt = "You will be given a Roblox chat message and a task you will perform on the message. You will return the new Roblox chat message ONLY (DO NOT include things like 'MESSAGE: ' at the start). If the user task is N/A, return the original message. Preserve the original tone of the message (e.g. if the original message is lowercase, the new message should be lowercase). You will also be given the chat history for context, but ONLY use the LATEST user task and message."
 
 local model = "gpt-4o-mini"
 local apiKey
