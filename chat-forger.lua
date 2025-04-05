@@ -1,11 +1,20 @@
 local json = loadstring(game:HttpGet("https://raw.githubusercontent.com/rxi/json.lua/master/json.lua"))()
 
-local SayMessageRequest = game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest
+local chatStatus, chatEvent, TextChannel
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
-
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = Players.LocalPlayer
 local chatHistory = {}
+
+if ReplicatedStorage:FindFirstChild("DefaultChatSystemChatEvents") then
+    chatStatus = "old"
+    chatEvent = ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest
+else 
+    chatStatus = "new"
+    TextChannel = game:GetService("TextChatService").TextChannels.RBXGeneral
+end
 
 if getgenv().ChatForgerRunning then
     warn("Chat Forger is already running. Close the existing instance first.")
@@ -109,8 +118,7 @@ local function createDraggableFrame(parent, title)
 end
 
 local function createGui()
-    local player = Players.LocalPlayer
-    local playerGui = player:WaitForChild("PlayerGui")
+    local playerGui = LocalPlayer:WaitForChild("PlayerGui")
     
     for _, v in pairs(playerGui:GetChildren()) do
         if v.Name == "ChatForgerGui" then
@@ -200,7 +208,7 @@ local function validateApiKey(key)
 end
 
 local function createApiKeyGui()
-    local playerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
+    local playerGui = LocalPlayer:WaitForChild("PlayerGui")
 
     local gui = Instance.new("ScreenGui", playerGui)
     gui.Name = "ApiKeyGui"
@@ -341,22 +349,34 @@ getgenv().ChatForgerRunning = false
 initializeScript()
 
 if not getgenv().hooked then
-    local namecall
-    namecall = hookmetamethod(game, "__namecall", function(self, ...)
-        local method = getnamecallmethod()
-        if not checkcaller() then
-            if method == "FireServer" and self == SayMessageRequest then
-                local args = {...}
-                local success, result = pcall(function()
-                    return getMessage(args[1])
-                end)
-                if success then
-                    args[1] = result
-                    return namecall(self, unpack(args))
+
+
+if chatStatus == "old" then
+    if not hookmetamethod then error("Your exploit does not support hookmetamethod") end
+        local namecall
+        namecall = hookmetamethod(game, "__namecall", function(self, ...)
+            local method = getnamecallmethod()
+            if not checkcaller() then
+                if method == "FireServer" and self == SayMessageRequest then
+                    local args = {...}
+                    local success, result = pcall(function()
+                        return getMessage(args[1])
+                    end)
+                    if success then
+                        args[1] = result
+                        return namecall(self, unpack(args))
+                    end
                 end
             end
+            return namecall(self, ...)
+        end)
+    else 
+        TextChannel.OnIncomingMessage = function(Message)
+            if tostring(Message.TextSource) == tostring(LocalPlayer.Name) and Message.Status == Enum.TextChatMessageStatus.Sending then
+                Message.Text = getMessage(Message.Text)
+            end
         end
-        return namecall(self, ...)
-    end)
+    end
+
     getgenv().hooked = true
 end
