@@ -181,8 +181,8 @@ local function createGui()
         getgenv().ChatForgerRunning = false
     end)
 
-    local function handleKeyPress(input)
-        if input.KeyCode == Enum.KeyCode.RightShift and input.UserInputState == Enum.UserInputState.Begin then
+    local function handleKeyPress(input, gameProcessed)
+        if input.KeyCode == Enum.KeyCode.RightShift and input.UserInputState == Enum.UserInputState.Begin and not gameProcessed then
             toggleGuiVisibility(gui)
         end
     end
